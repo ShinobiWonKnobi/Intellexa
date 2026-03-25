@@ -24,8 +24,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onSea
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0" onClick={() => onTabChange('dashboard')}>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-base sm:text-xl shadow-lg shadow-blue-100">S</div>
-            <span className="text-base sm:text-xl font-extrabold font-poppins text-slate-900 hidden xs:block">StudyHub</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-base sm:text-xl shadow-lg shadow-blue-100">I</div>
+            <span className="text-base sm:text-xl font-extrabold font-poppins text-slate-900 hidden xs:block">Intellexa</span>
           </div>
 
           <form onSubmit={handleSearch} className="flex-1 max-w-md hidden sm:block">
@@ -101,15 +101,15 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onSea
       <footer className="bg-white border-t border-slate-200 py-8">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-slate-900 rounded-lg flex items-center justify-center text-white font-bold text-xs">S</div>
-            <span className="text-sm font-bold text-slate-900 uppercase tracking-widest">StudyHub</span>
+            <div className="w-7 h-7 bg-slate-900 rounded-lg flex items-center justify-center text-white font-bold text-xs">I</div>
+            <span className="text-sm font-bold text-slate-900 uppercase tracking-widest">Intellexa</span>
           </div>
           <div className="flex gap-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <a href="#" className="hover:text-blue-600">Privacy</a>
             <a href="#" className="hover:text-blue-600">Terms</a>
             <a href="#" className="hover:text-blue-600">Support</a>
           </div>
-          <p className="text-[10px] text-slate-400 font-bold uppercase">&copy; 2025 StudyHub</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase">&copy; 2025 Intellexa</p>
         </div>
       </footer>
     </div>

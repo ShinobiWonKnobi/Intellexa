@@ -1,9 +1,24 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useApp } from '../context/AppContext';
 import { MOCK_USERS } from '../constants';
 
 const LeaderboardPage: React.FC = () => {
-  const sortedUsers = [...MOCK_USERS].sort((a, b) => b.karma - a.karma);
+  const { user: currentUser } = useApp();
+
+  const sortedUsers = useMemo(() => {
+    // Combine mock users with current user if not already present
+    let allUsers = [...MOCK_USERS];
+    
+    if (currentUser && !allUsers.find(u => u.id === currentUser.id)) {
+      allUsers.push(currentUser);
+    } else if (currentUser) {
+      // Update current user in the list if they are already there
+      allUsers = allUsers.map(u => u.id === currentUser.id ? currentUser : u);
+    }
+
+    return allUsers.sort((a, b) => b.karma - a.karma);
+  }, [currentUser]);
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -22,7 +37,10 @@ const LeaderboardPage: React.FC = () => {
 
         <div className="divide-y divide-slate-100">
           {sortedUsers.map((user, idx) => (
-            <div key={user.id} className="p-6 grid grid-cols-12 items-center hover:bg-slate-50 transition-colors">
+            <div 
+              key={user.id} 
+              className={`p-6 grid grid-cols-12 items-center transition-colors ${user.id === currentUser?.id ? 'bg-blue-50/50' : 'hover:bg-slate-50'}`}
+            >
               <div className="col-span-1 flex items-center justify-center">
                 {idx === 0 ? <span className="text-2xl">🥇</span> : 
                  idx === 1 ? <span className="text-2xl">🥈</span> : 
@@ -32,7 +50,12 @@ const LeaderboardPage: React.FC = () => {
               <div className="col-span-7 flex items-center gap-4 px-4">
                 <img src={user.avatar} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="" />
                 <div className="flex flex-col">
-                  <span className="font-bold text-slate-900">{user.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900">{user.name}</span>
+                    {user.id === currentUser?.id && (
+                      <span className="text-[8px] font-black bg-blue-600 text-white px-1.5 py-0.5 rounded uppercase tracking-tighter">You</span>
+                    )}
+                  </div>
                   <span className="text-xs text-slate-500">Member since {new Date(user.joinedAt).getFullYear()}</span>
                 </div>
               </div>
@@ -40,7 +63,7 @@ const LeaderboardPage: React.FC = () => {
                 {user.contributions}
               </div>
               <div className="col-span-2 text-right">
-                <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
+                <span className={`px-3 py-1 rounded-full text-sm font-bold ${user.id === currentUser?.id ? 'bg-blue-600 text-white' : 'bg-green-50 text-green-700'}`}>
                   {user.karma.toLocaleString()}
                 </span>
               </div>

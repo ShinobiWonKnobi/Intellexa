@@ -9,22 +9,30 @@ const AskModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, 
     title: '',
     content: '',
     course: POPULAR_COURSES[0],
+    customCourse: '',
     tags: '',
     anonymous: false,
     urgent: false
   });
+  const [isOtherCourse, setIsOtherCourse] = useState(false);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim() || !formData.content.trim()) return;
+    
+    const finalCourse = isOtherCourse ? formData.customCourse : formData.course;
+    if (!finalCourse.trim()) return;
+
     addQuestion({
       ...formData,
+      course: finalCourse,
       tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean)
     });
     onClose();
-    setFormData({ title: '', content: '', course: POPULAR_COURSES[0], tags: '', anonymous: false, urgent: false });
+    setFormData({ title: '', content: '', course: POPULAR_COURSES[0], customCourse: '', tags: '', anonymous: false, urgent: false });
+    setIsOtherCourse(false);
   };
 
   return (
@@ -58,14 +66,41 @@ const AskModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, 
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Relevant Course</label>
               <div className="relative">
-                <select 
-                  className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-bold appearance-none cursor-pointer"
-                  value={formData.course}
-                  onChange={(e) => setFormData({...formData, course: e.target.value})}
-                >
-                  {POPULAR_COURSES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <svg className="absolute right-4 top-4 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                {!isOtherCourse ? (
+                  <select 
+                    className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-bold appearance-none cursor-pointer"
+                    value={formData.course}
+                    onChange={(e) => {
+                      if (e.target.value === 'OTHER') {
+                        setIsOtherCourse(true);
+                      } else {
+                        setFormData({...formData, course: e.target.value});
+                      }
+                    }}
+                  >
+                    {POPULAR_COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+                    <option value="OTHER">Other...</option>
+                  </select>
+                ) : (
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Enter Course Code..."
+                      className="flex-1 px-5 py-3.5 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-bold"
+                      value={formData.customCourse}
+                      onChange={(e) => setFormData({...formData, customCourse: e.target.value})}
+                      autoFocus
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setIsOtherCourse(false)}
+                      className="px-4 bg-slate-100 hover:bg-slate-200 rounded-2xl text-slate-500 transition-all"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                )}
+                {!isOtherCourse && <svg className="absolute right-4 top-4 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>}
               </div>
             </div>
             <div className="space-y-2">

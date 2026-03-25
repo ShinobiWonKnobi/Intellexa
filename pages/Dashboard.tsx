@@ -4,17 +4,18 @@ import { useApp } from '../context/AppContext';
 import { QuestionCard, ResourceCard } from '../components/Cards';
 import { POPULAR_COURSES } from '../constants';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Question, Resource } from '../types';
 
-const Dashboard: React.FC<{ onSelectQuestion: (id: string) => void; searchQuery: string }> = ({ onSelectQuestion, searchQuery }) => {
-  const { questions, resources, user } = useApp();
+const Dashboard: React.FC<{ onSelectQuestion: (id: string) => void; searchQuery: string; onClearSearch: () => void }> = ({ onSelectQuestion, searchQuery, onClearSearch }) => {
+  const { questions, resources, answers, user } = useApp();
   const [activeTab, setActiveTab] = useState<'questions' | 'resources' | 'my'>('questions');
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
 
-  const statsData = [
-    { name: 'Questions', val: 124, color: '#3B82F6' },
-    { name: 'Answers', val: 89, color: '#10B981' },
-    { name: 'Materials', val: 45, color: '#8B5CF6' }
-  ];
+  const statsData = useMemo(() => [
+    { name: 'Questions', val: questions.length, color: '#3B82F6' },
+    { name: 'Answers', val: answers.length, color: '#10B981' },
+    { name: 'Materials', val: resources.length, color: '#8B5CF6' }
+  ], [questions.length, answers.length, resources.length]);
 
   const filteredQuestions = useMemo(() => {
     let qs = [...questions];
@@ -47,12 +48,32 @@ const Dashboard: React.FC<{ onSelectQuestion: (id: string) => void; searchQuery:
   }, [resources, searchQuery, selectedCourse]);
 
   const myContributions = useMemo(() => {
-    const combined = [
+    let combined = [
       ...questions.filter(q => q.userId === user?.id).map(q => ({ ...q, itemType: 'question' as const })),
       ...resources.filter(r => r.userId === user?.id).map(r => ({ ...r, itemType: 'resource' as const }))
     ];
+
+    if (searchQuery) {
+      combined = combined.filter(item => 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.itemType === 'question' && (item as Question).content.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.itemType === 'resource' && (item as Resource).description.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
+    if (selectedCourse) {
+      combined = combined.filter(item => item.course === selectedCourse);
+    }
+
     return combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [questions, resources, user]);
+  }, [questions, resources, user, searchQuery, selectedCourse]);
+
+  const allCourses = useMemo(() => {
+    const courses = new Set(POPULAR_COURSES);
+    questions.forEach(q => courses.add(q.course));
+    resources.forEach(r => courses.add(r.course));
+    return Array.from(courses).sort();
+  }, [questions, resources]);
 
   return (
     <div className="grid lg:grid-cols-4 gap-6 lg:gap-8">
@@ -67,7 +88,7 @@ const Dashboard: React.FC<{ onSelectQuestion: (id: string) => void; searchQuery:
             >
               All Courses
             </button>
-            {POPULAR_COURSES.map(course => (
+            {allCourses.map(course => (
               <button 
                 key={course}
                 onClick={() => setSelectedCourse(course)}
@@ -81,7 +102,7 @@ const Dashboard: React.FC<{ onSelectQuestion: (id: string) => void; searchQuery:
 
         {/* Stats Section - Hidden on mobile to keep content primary */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hidden lg:block">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Weekly Stats</h3>
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Live Stats</h3>
           <div className="h-40 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={statsData}>
@@ -106,7 +127,7 @@ const Dashboard: React.FC<{ onSelectQuestion: (id: string) => void; searchQuery:
         {searchQuery && (
           <div className="bg-blue-600 p-4 rounded-2xl flex items-center justify-between shadow-lg shadow-blue-100">
             <p className="text-sm text-white font-medium">Search: "<span className="font-bold">{searchQuery}</span>"</p>
-            <button onClick={() => setSelectedCourse(null)} className="text-white/80 hover:text-white">
+            <button onClick={onClearSearch} className="text-white/80 hover:text-white">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>

@@ -10,30 +10,56 @@ interface AppContextType {
   answers: Answer[];
   login: (email: string) => void;
   logout: () => void;
+  updateUser: (updates: Partial<User>) => void;
   addQuestion: (q: Partial<Question>) => void;
   addResource: (r: Partial<Resource>) => void;
   addAnswer: (a: Partial<Answer>) => void;
   vote: (targetId: string, type: 'question' | 'resource' | 'answer', value: 1 | -1) => void;
+  resolveQuestion: (id: string) => void;
+  markBestAnswer: (questionId: string, answerId: string) => void;
   updateKarma: (amount: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [questions, setQuestions] = useState<Question[]>(MOCK_QUESTIONS);
-  const [resources, setResources] = useState<Resource[]>(MOCK_RESOURCES);
-  const [answers, setAnswers] = useState<Answer[]>([]);
-  // In a real app, track votes to prevent multiple votes by same user
-  const [votedItems, setVotedItems] = useState<Set<string>>(new Set());
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('intellexa_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [questions, setQuestions] = useState<Question[]>(() => {
+    const saved = localStorage.getItem('intellexa_questions');
+    return saved ? JSON.parse(saved) : MOCK_QUESTIONS;
+  });
+  const [resources, setResources] = useState<Resource[]>(() => {
+    const saved = localStorage.getItem('intellexa_resources');
+    return saved ? JSON.parse(saved) : MOCK_RESOURCES;
+  });
+  const [answers, setAnswers] = useState<Answer[]>(() => {
+    const saved = localStorage.getItem('intellexa_answers');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [votedItems, setVotedItems] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('intellexa_voted_items');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
 
-  // Simulation of persistent auth
+  // Persistence effects
   useEffect(() => {
-    const savedUser = localStorage.getItem('studyhub_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+    localStorage.setItem('intellexa_questions', JSON.stringify(questions));
+  }, [questions]);
+
+  useEffect(() => {
+    localStorage.setItem('intellexa_resources', JSON.stringify(resources));
+  }, [resources]);
+
+  useEffect(() => {
+    localStorage.setItem('intellexa_answers', JSON.stringify(answers));
+  }, [answers]);
+
+  useEffect(() => {
+    localStorage.setItem('intellexa_voted_items', JSON.stringify(Array.from(votedItems)));
+  }, [votedItems]);
 
   const login = (email: string) => {
     if (!email.endsWith('.edu')) {
@@ -56,19 +82,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     
     setUser(newUser);
-    localStorage.setItem('studyhub_user', JSON.stringify(newUser));
+    localStorage.setItem('intellexa_user', JSON.stringify(newUser));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('studyhub_user');
+    localStorage.removeItem('intellexa_user');
+  };
+
+  const updateUser = (updates: Partial<User>) => {
+    setUser(prev => {
+      if (!prev) return null;
+      const updated = { ...prev, ...updates };
+      localStorage.setItem('intellexa_user', JSON.stringify(updated));
+      
+      // Propagate name/avatar changes to existing contributions
+      if (updates.name || updates.avatar) {
+        setQuestions(qs => qs.map(q => q.userId === updated.id && !q.anonymous ? { 
+          ...q, 
+          userName: updates.name || q.userName,
+          userAvatar: updates.avatar || q.userAvatar 
+        } : q));
+        setResources(rs => rs.map(r => r.userId === updated.id ? { 
+          ...r, 
+          userName: updates.name || r.userName 
+        } : r));
+        setAnswers(ans => ans.map(a => a.userId === updated.id && !a.anonymous ? { 
+          ...a, 
+          userName: updates.name || a.userName,
+          userAvatar: updates.avatar || a.userAvatar 
+        } : a));
+      }
+      
+      return updated;
+    });
   };
 
   const updateKarma = useCallback((amount: number) => {
     setUser(prev => {
       if (!prev) return null;
       const updated = { ...prev, karma: prev.karma + amount };
-      localStorage.setItem('studyhub_user', JSON.stringify(updated));
+      localStorage.setItem('intellexa_user', JSON.stringify(updated));
       return updated;
     });
   }, []);
@@ -139,21 +193,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     setVotedItems(prev => new Set(prev).add(targetId));
 
+    let authorId = '';
     if (type === 'question') {
+      const q = questions.find(q => q.id === targetId);
+      if (q) authorId = q.userId;
       setQuestions(prev => prev.map(q => q.id === targetId ? { ...q, votes: q.votes + value } : q));
     } else if (type === 'resource') {
+      const r = resources.find(r => r.id === targetId);
+      if (r) authorId = r.userId;
       setResources(prev => prev.map(r => r.id === targetId ? { ...r, votes: r.votes + value } : r));
     } else if (type === 'answer') {
+      const a = answers.find(a => a.id === targetId);
+      if (a) authorId = a.userId;
       setAnswers(prev => prev.map(ans => ans.id === targetId ? { ...ans, votes: ans.votes + value } : ans));
     }
 
-    if (value === 1) {
+    // Award karma to the author if it's an upvote
+    if (value === 1 && authorId === user?.id) {
       updateKarma(KarmaReward.RECEIVE_UPVOTE);
     }
   };
 
+  const resolveQuestion = (id: string) => {
+    setQuestions(prev => prev.map(q => q.id === id ? { ...q, resolved: true } : q));
+  };
+
+  const markBestAnswer = (questionId: string, answerId: string) => {
+    setAnswers(prev => prev.map(a => {
+      if (a.questionId === questionId) {
+        return { ...a, isBest: a.id === answerId };
+      }
+      return a;
+    }));
+    
+    // Award karma to the answerer
+    const bestAnswer = answers.find(a => a.id === answerId);
+    if (bestAnswer && bestAnswer.userId === user?.id) {
+      updateKarma(KarmaReward.BEST_ANSWER);
+    }
+    
+    // Also resolve the question
+    resolveQuestion(questionId);
+  };
+
   return (
-    <AppContext.Provider value={{ user, questions, resources, answers, login, logout, addQuestion, addResource, addAnswer, vote, updateKarma }}>
+    <AppContext.Provider value={{ 
+      user, 
+      questions, 
+      resources, 
+      answers, 
+      login, 
+      logout, 
+      updateUser,
+      addQuestion, 
+      addResource, 
+      addAnswer, 
+      vote, 
+      resolveQuestion,
+      markBestAnswer,
+      updateKarma 
+    }}>
       {children}
     </AppContext.Provider>
   );

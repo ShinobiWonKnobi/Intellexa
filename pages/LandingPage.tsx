@@ -25,8 +25,8 @@ const LandingPage: React.FC = () => {
 
       <header className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">S</div>
-          <span className="text-2xl font-bold font-poppins text-blue-900">StudyHub</span>
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">I</div>
+          <span className="text-2xl font-bold font-poppins text-blue-900">Intellexa</span>
         </div>
         <button onClick={() => setIsLoginView(!isLoginView)} className="text-sm font-semibold text-blue-600 hover:text-blue-700">
           {isLoginView ? 'Create Account' : 'Login'}
@@ -100,7 +100,16 @@ const LandingPage: React.FC = () => {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Password</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Password</label>
+                <button 
+                  type="button"
+                  onClick={() => alert("Password reset link has been sent to your campus email!")}
+                  className="text-[10px] font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider"
+                >
+                  Forgot?
+                </button>
+              </div>
               <input 
                 type="password" 
                 placeholder="••••••••"

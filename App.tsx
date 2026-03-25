@@ -42,13 +42,13 @@ const AppContent: React.FC = () => {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard onSelectQuestion={setSelectedQuestionId} searchQuery={searchQuery} />;
+        return <Dashboard onSelectQuestion={setSelectedQuestionId} searchQuery={searchQuery} onClearSearch={() => setSearchQuery('')} />;
       case 'leaderboard':
         return <LeaderboardPage />;
       case 'profile':
         return <ProfilePage />;
       default:
-        return <Dashboard onSelectQuestion={setSelectedQuestionId} searchQuery={searchQuery} />;
+        return <Dashboard onSelectQuestion={setSelectedQuestionId} searchQuery={searchQuery} onClearSearch={() => setSearchQuery('')} />;
     }
   };
 

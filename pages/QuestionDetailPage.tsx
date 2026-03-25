@@ -4,16 +4,34 @@ import { useApp } from '../context/AppContext';
 import { getAISummary } from '../services/geminiService';
 
 const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> = ({ questionId, onBack }) => {
-  const { questions, answers, addAnswer, vote, user } = useApp();
+  const { questions, answers, addAnswer, vote, user, resolveQuestion, markBestAnswer } = useApp();
   const [answerContent, setAnswerContent] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   const question = questions.find(q => q.id === questionId);
-  const questionAnswers = useMemo(() => answers.filter(a => a.questionId === questionId), [answers, questionId]);
+  const questionAnswers = useMemo(() => {
+    const filtered = answers.filter(a => a.questionId === questionId);
+    // Put best answer at the top
+    return [...filtered].sort((a, b) => (a.isBest ? -1 : b.isBest ? 1 : 0));
+  }, [answers, questionId]);
 
   if (!question) return <div className="p-10 text-center font-bold text-slate-500">Question not found</div>;
+
+  const isAuthor = user?.id === question.userId;
+
+  const handleResolve = () => {
+    if (window.confirm("Mark this question as resolved?")) {
+      resolveQuestion(question.id);
+    }
+  };
+
+  const handleMarkBest = (answerId: string) => {
+    if (window.confirm("Mark this as the best answer? This will also resolve the question.")) {
+      markBestAnswer(question.id, answerId);
+    }
+  };
 
   const handleAISummary = async () => {
     setIsAiLoading(true);
@@ -48,7 +66,16 @@ const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> =
         <div className="flex items-center gap-2 mb-6 flex-wrap">
           <span className="text-[10px] font-black px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg uppercase tracking-wider">{question.course}</span>
           {question.urgent && <span className="text-[10px] font-black px-2.5 py-1 bg-red-50 text-red-600 rounded-lg uppercase tracking-wider">Urgent</span>}
+          {question.resolved && <span className="text-[10px] font-black px-2.5 py-1 bg-green-50 text-green-600 rounded-lg uppercase tracking-wider">Resolved</span>}
           <span className="text-[10px] font-black px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg uppercase tracking-wider">{new Date(question.createdAt).toLocaleDateString()}</span>
+          {isAuthor && !question.resolved && (
+            <button 
+              onClick={handleResolve}
+              className="text-[10px] font-black px-2.5 py-1 bg-slate-100 text-slate-600 hover:bg-green-600 hover:text-white rounded-lg uppercase tracking-wider transition-colors"
+            >
+              Mark as Resolved
+            </button>
+          )}
         </div>
 
         <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 mb-8 font-poppins leading-tight tracking-tight">{question.title}</h1>
@@ -95,7 +122,7 @@ const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> =
           
           <div className="flex items-center gap-3 mb-4 relative z-10">
             <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center text-[10px] text-white font-black backdrop-blur-md border border-white/30">AI</div>
-            <h3 className="text-sm font-black text-white uppercase tracking-widest">StudyHub Intelligence</h3>
+            <h3 className="text-sm font-black text-white uppercase tracking-widest">Intellexa Intelligence</h3>
           </div>
           <p className="text-white text-base sm:text-lg leading-relaxed font-medium relative z-10">"{aiSummary}"</p>
         </div>
@@ -105,12 +132,12 @@ const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> =
       <div className="space-y-6">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xl font-extrabold text-slate-900 font-poppins">Discussion ({questionAnswers.length})</h2>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">Newest First</div>
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">Best First</div>
         </div>
         
         <div className="space-y-4">
           {questionAnswers.length > 0 ? questionAnswers.map(ans => (
-            <div key={ans.id} className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-8 flex flex-col sm:flex-row gap-6 hover:border-blue-200 transition-colors shadow-sm">
+            <div key={ans.id} className={`bg-white rounded-3xl border p-5 sm:p-8 flex flex-col sm:flex-row gap-6 transition-all shadow-sm ${ans.isBest ? 'border-green-500 ring-4 ring-green-50' : 'border-slate-200 hover:border-blue-200'}`}>
               <div className="flex flex-row sm:flex-col items-center justify-center gap-4 sm:gap-2 bg-slate-50 rounded-2xl p-2 sm:p-3 sm:min-w-[60px]">
                 <button className="text-slate-400 hover:text-blue-600 p-1 transition-colors" onClick={() => vote(ans.id, 'answer', 1)}>
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
@@ -121,6 +148,14 @@ const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> =
                 </button>
               </div>
               <div className="flex-1">
+                {ans.isBest && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="bg-green-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-green-100">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                      Best Answer
+                    </span>
+                  </div>
+                )}
                 <p className="text-slate-600 mb-6 leading-relaxed whitespace-pre-wrap">{ans.content}</p>
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                   <div className="flex items-center gap-3">
@@ -130,6 +165,15 @@ const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> =
                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{new Date(ans.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
+                  
+                  {isAuthor && !ans.isBest && (
+                    <button 
+                      onClick={() => handleMarkBest(ans.id)}
+                      className="text-[10px] font-black text-blue-600 hover:text-white hover:bg-blue-600 px-4 py-2 rounded-xl border border-blue-100 hover:border-blue-600 transition-all uppercase tracking-widest"
+                    >
+                      Mark as Best
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
