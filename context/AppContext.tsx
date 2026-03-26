@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { User, Question, Answer, Resource, KarmaReward } from '../types';
+import { User, Question, Answer, Resource, KarmaReward, UserRedemption, RedemptionItem } from '../types';
 import { MOCK_USERS, MOCK_QUESTIONS, MOCK_RESOURCES } from '../constants';
 
 interface AppContextType {
@@ -17,7 +17,12 @@ interface AppContextType {
   vote: (targetId: string, type: 'question' | 'resource' | 'answer', value: 1 | -1) => void;
   resolveQuestion: (id: string) => void;
   markBestAnswer: (questionId: string, answerId: string) => void;
+  verifyAnswer: (answerId: string) => void;
+  flagAnswer: (answerId: string) => void;
   updateKarma: (amount: number) => void;
+  votedItems: Set<string>;
+  redemptions: UserRedemption[];
+  redeemItem: (item: RedemptionItem) => boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -43,6 +48,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const saved = localStorage.getItem('intellexa_voted_items');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
+  const [redemptions, setRedemptions] = useState<UserRedemption[]>(() => {
+    const saved = localStorage.getItem('intellexa_redemptions');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // Persistence effects
   useEffect(() => {
@@ -61,25 +70,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('intellexa_voted_items', JSON.stringify(Array.from(votedItems)));
   }, [votedItems]);
 
+  useEffect(() => {
+    localStorage.setItem('intellexa_redemptions', JSON.stringify(redemptions));
+  }, [redemptions]);
+
   const login = (email: string) => {
     if (!email.endsWith('.edu')) {
-      alert("Only campus emails (.edu) are allowed.");
+      console.error("Only campus emails (.edu) are allowed.");
       return;
     }
     
-    const isDemo = email === 'demo@university.edu';
-    const newUser: User = {
-      ...(isDemo ? MOCK_USERS[0] : {
+    const isDemoUser = email === 'demo@university.edu';
+    const isDemoTA = email === 'ta@university.edu';
+    const isDemoAdmin = email === 'admin@university.edu';
+
+    let newUser: User;
+
+    if (isDemoUser) {
+      newUser = MOCK_USERS[0];
+    } else if (isDemoTA) {
+      newUser = MOCK_USERS[1];
+    } else if (isDemoAdmin) {
+      newUser = MOCK_USERS[2];
+    } else {
+      newUser = {
         id: Math.random().toString(36).substr(2, 9),
         name: email.split('@')[0],
+        email,
+        avatar: `https://picsum.photos/seed/${email}/200`,
         karma: 0,
         contributions: 0,
         role: 'user',
         joinedAt: new Date().toISOString()
-      }),
-      email,
-      avatar: isDemo ? MOCK_USERS[0].avatar : `https://picsum.photos/seed/${email}/200`,
-    };
+      };
+    }
     
     setUser(newUser);
     localStorage.setItem('intellexa_user', JSON.stringify(newUser));
@@ -180,6 +204,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       anonymous: !!a.anonymous,
       votes: 0,
       isBest: false,
+      isVerified: false,
+      isFlagged: false,
       createdAt: new Date().toISOString(),
     };
     setAnswers(prev => [newA, ...prev]);
@@ -188,30 +214,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const vote = (targetId: string, type: 'question' | 'resource' | 'answer', value: 1 | -1) => {
+    if (!user) return;
+    
     // Basic anti-spam for the demo session
     if (votedItems.has(targetId)) return;
     
-    setVotedItems(prev => new Set(prev).add(targetId));
-
     let authorId = '';
     if (type === 'question') {
       const q = questions.find(q => q.id === targetId);
       if (q) authorId = q.userId;
-      setQuestions(prev => prev.map(q => q.id === targetId ? { ...q, votes: q.votes + value } : q));
     } else if (type === 'resource') {
       const r = resources.find(r => r.id === targetId);
       if (r) authorId = r.userId;
-      setResources(prev => prev.map(r => r.id === targetId ? { ...r, votes: r.votes + value } : r));
     } else if (type === 'answer') {
       const a = answers.find(a => a.id === targetId);
       if (a) authorId = a.userId;
+    }
+
+    // Prevent self-voting
+    if (authorId === user.id) {
+      console.warn("You cannot vote on your own contributions.");
+      return;
+    }
+    
+    setVotedItems(prev => new Set(prev).add(targetId));
+
+    if (type === 'question') {
+      setQuestions(prev => prev.map(q => q.id === targetId ? { ...q, votes: q.votes + value } : q));
+    } else if (type === 'resource') {
+      setResources(prev => prev.map(r => r.id === targetId ? { ...r, votes: r.votes + value } : r));
+    } else if (type === 'answer') {
       setAnswers(prev => prev.map(ans => ans.id === targetId ? { ...ans, votes: ans.votes + value } : ans));
     }
 
-    // Award karma to the author if it's an upvote
-    if (value === 1 && authorId === user?.id) {
-      updateKarma(KarmaReward.RECEIVE_UPVOTE);
-    }
+    // In a real app, karma is awarded to the author when OTHERS upvote.
+    // For this local demo, we simulate this by awarding karma if the current user 
+    // were to receive an upvote from someone else.
   };
 
   const resolveQuestion = (id: string) => {
@@ -236,6 +274,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     resolveQuestion(questionId);
   };
 
+  const verifyAnswer = (answerId: string) => {
+    if (user?.role !== 'TA' && user?.role !== 'admin') return;
+    setAnswers(prev => prev.map(a => a.id === answerId ? { ...a, isVerified: !a.isVerified, isFlagged: false } : a));
+  };
+
+  const flagAnswer = (answerId: string) => {
+    if (user?.role !== 'TA' && user?.role !== 'admin') return;
+    setAnswers(prev => prev.map(a => a.id === answerId ? { ...a, isFlagged: !a.isFlagged, isVerified: false } : a));
+  };
+
+  const redeemItem = (item: RedemptionItem) => {
+    if (!user || user.karma < item.cost) return false;
+
+    const newRedemption: UserRedemption = {
+      id: Math.random().toString(36).substr(2, 9),
+      userId: user.id,
+      itemId: item.id,
+      redeemedAt: new Date().toISOString()
+    };
+
+    setRedemptions(prev => [newRedemption, ...prev]);
+    updateKarma(-item.cost);
+    return true;
+  };
+
   return (
     <AppContext.Provider value={{ 
       user, 
@@ -251,7 +314,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       vote, 
       resolveQuestion,
       markBestAnswer,
-      updateKarma 
+      verifyAnswer,
+      flagAnswer,
+      updateKarma,
+      votedItems,
+      redemptions,
+      redeemItem
     }}>
       {children}
     </AppContext.Provider>

@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { Gift, ArrowRight, Clock } from 'lucide-react';
+import { REDEMPTION_ITEMS } from '../constants';
 
 const ProfilePage: React.FC = () => {
-  const { user, updateUser } = useApp();
+  const { user, updateUser, redemptions } = useApp();
+  const userRedemptions = redemptions.filter(r => r.userId === user?.id);
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(user?.name || '');
   const [newAvatar, setNewAvatar] = useState(user?.avatar || '');
@@ -99,7 +102,14 @@ const ProfilePage: React.FC = () => {
               </div>
             ) : (
               <>
-                <h1 className="text-3xl font-extrabold text-slate-900 font-poppins">{user?.name}</h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-extrabold text-slate-900 font-poppins">{user?.name}</h1>
+                  {user?.role !== 'user' && (
+                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider ${user?.role === 'admin' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                      {user?.role}
+                    </span>
+                  )}
+                </div>
                 <p className="text-slate-500 font-medium">{user?.email}</p>
               </>
             )}
@@ -120,6 +130,50 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Redemption History */}
+      <div className="mt-8 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+              <Gift className="w-5 h-5" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">Redemption History</h2>
+          </div>
+          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            {userRedemptions.length} Items Redeemed
+          </div>
+        </div>
+
+        {userRedemptions.length === 0 ? (
+          <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <p className="text-slate-400 text-sm font-medium">No redemptions yet. Visit the portal to use your karma!</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 gap-4">
+            {userRedemptions.map((redemption) => {
+              const item = REDEMPTION_ITEMS.find(i => i.id === redemption.itemId);
+              if (!item) return null;
+              return (
+                <div key={redemption.id} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-purple-200 transition-colors">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm group-hover:scale-110 transition-transform">
+                    <Gift className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-bold text-slate-900 truncate">{item.title}</h4>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                      Redeemed on {new Date(redemption.redeemedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-[10px] font-bold text-slate-400 bg-white px-2 py-1 rounded-lg border border-slate-100">
+                    {item.cost} pts
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

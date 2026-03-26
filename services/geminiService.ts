@@ -8,8 +8,8 @@ import { GoogleGenAI } from "@google/genai";
 
 const getApiKey = () => {
   try {
-    // Check both standard and Vite-style env variables
-    return process.env.API_KEY || '';
+    // Always use GEMINI_API_KEY for the Gemini API
+    return process.env.GEMINI_API_KEY || '';
   } catch (e) {
     return '';
   }

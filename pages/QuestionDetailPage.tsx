@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { getAISummary } from '../services/geminiService';
 
 const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> = ({ questionId, onBack }) => {
-  const { questions, answers, addAnswer, vote, user, resolveQuestion, markBestAnswer } = useApp();
+  const { questions, answers, addAnswer, vote, user, resolveQuestion, markBestAnswer, verifyAnswer, flagAnswer, votedItems } = useApp();
   const [answerContent, setAnswerContent] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
@@ -13,24 +13,35 @@ const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> =
   const question = questions.find(q => q.id === questionId);
   const questionAnswers = useMemo(() => {
     const filtered = answers.filter(a => a.questionId === questionId);
-    // Put best answer at the top
-    return [...filtered].sort((a, b) => (a.isBest ? -1 : b.isBest ? 1 : 0));
+    // Put best answer at the top, then verified, then by votes
+    return [...filtered].sort((a, b) => {
+      if (a.isBest) return -1;
+      if (b.isBest) return 1;
+      if (a.isVerified && !b.isVerified) return -1;
+      if (!a.isVerified && b.isVerified) return 1;
+      return b.votes - a.votes;
+    });
   }, [answers, questionId]);
 
   if (!question) return <div className="p-10 text-center font-bold text-slate-500">Question not found</div>;
 
   const isAuthor = user?.id === question.userId;
+  const isPrivileged = user?.role === 'TA' || user?.role === 'admin';
 
   const handleResolve = () => {
-    if (window.confirm("Mark this question as resolved?")) {
-      resolveQuestion(question.id);
-    }
+    resolveQuestion(question.id);
   };
 
   const handleMarkBest = (answerId: string) => {
-    if (window.confirm("Mark this as the best answer? This will also resolve the question.")) {
-      markBestAnswer(question.id, answerId);
-    }
+    markBestAnswer(question.id, answerId);
+  };
+
+  const handleVerify = (answerId: string) => {
+    verifyAnswer(answerId);
+  };
+
+  const handleFlag = (answerId: string) => {
+    flagAnswer(answerId);
   };
 
   const handleAISummary = async () => {
@@ -136,27 +147,51 @@ const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> =
         </div>
         
         <div className="space-y-4">
-          {questionAnswers.length > 0 ? questionAnswers.map(ans => (
-            <div key={ans.id} className={`bg-white rounded-3xl border p-5 sm:p-8 flex flex-col sm:flex-row gap-6 transition-all shadow-sm ${ans.isBest ? 'border-green-500 ring-4 ring-green-50' : 'border-slate-200 hover:border-blue-200'}`}>
-              <div className="flex flex-row sm:flex-col items-center justify-center gap-4 sm:gap-2 bg-slate-50 rounded-2xl p-2 sm:p-3 sm:min-w-[60px]">
-                <button className="text-slate-400 hover:text-blue-600 p-1 transition-colors" onClick={() => vote(ans.id, 'answer', 1)}>
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
-                </button>
-                <span className="text-sm font-black text-slate-700">{ans.votes}</span>
-                <button className="text-slate-400 hover:text-red-600 p-1 transition-colors" onClick={() => vote(ans.id, 'answer', -1)}>
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-                </button>
-              </div>
-              <div className="flex-1">
-                {ans.isBest && (
-                  <div className="flex items-center gap-2 mb-4">
+          {questionAnswers.length > 0 ? questionAnswers.map(ans => {
+            const hasVoted = votedItems.has(ans.id);
+            const isOwn = user?.id === ans.userId;
+            
+            return (
+              <div key={ans.id} className={`bg-white rounded-3xl border p-5 sm:p-8 flex flex-col sm:flex-row gap-6 transition-all shadow-sm ${ans.isBest ? 'border-green-500 ring-4 ring-green-50' : ans.isVerified ? 'border-blue-500 ring-4 ring-blue-50' : ans.isFlagged ? 'border-red-500 bg-red-50/30 opacity-80' : 'border-slate-200 hover:border-blue-200'}`}>
+                <div className="flex flex-row sm:flex-col items-center justify-center gap-4 sm:gap-2 bg-slate-50 rounded-2xl p-2 sm:p-3 sm:min-w-[60px]">
+                  <button 
+                    className={`p-1 transition-colors ${hasVoted ? 'text-blue-600 cursor-default' : isOwn ? 'text-slate-200 cursor-not-allowed' : 'text-slate-400 hover:text-blue-600'}`} 
+                    onClick={() => !hasVoted && !isOwn && vote(ans.id, 'answer', 1)}
+                    disabled={hasVoted || isOwn}
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
+                  </button>
+                  <span className={`text-sm font-black ${hasVoted ? 'text-blue-600' : 'text-slate-700'}`}>{ans.votes}</span>
+                  <button 
+                    className={`p-1 transition-colors ${isOwn ? 'text-slate-200 cursor-not-allowed' : 'text-slate-400 hover:text-red-600'}`} 
+                    onClick={() => !hasVoted && !isOwn && vote(ans.id, 'answer', -1)}
+                    disabled={hasVoted || isOwn}
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                </div>
+                <div className="flex-1">
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {ans.isBest && (
                     <span className="bg-green-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-green-100">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                       Best Answer
                     </span>
-                  </div>
-                )}
-                <p className="text-slate-600 mb-6 leading-relaxed whitespace-pre-wrap">{ans.content}</p>
+                  )}
+                  {ans.isVerified && (
+                    <span className="bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-blue-100">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 11.372C3.701 15.025 7.103 17.5 11 17.5c5.247 0 9.5-4.253 9.5-9.5S16.247-1.5 11-1.5c-3.897 0-7.3 2.475-8.834 6.128" clipRule="evenodd" /><path d="M7 8l3 3 7-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>
+                      TA Verified
+                    </span>
+                  )}
+                  {ans.isFlagged && (
+                    <span className="bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-red-100">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                      Incorrect Info
+                    </span>
+                  )}
+                </div>
+                <p className={`text-slate-600 mb-6 leading-relaxed whitespace-pre-wrap ${ans.isFlagged ? 'line-through decoration-red-400/50' : ''}`}>{ans.content}</p>
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                   <div className="flex items-center gap-3">
                     <img src={ans.userAvatar} className="w-8 h-8 rounded-xl shadow-sm border border-white" alt="" />
@@ -166,18 +201,37 @@ const QuestionDetailPage: React.FC<{ questionId: string; onBack: () => void }> =
                     </div>
                   </div>
                   
-                  {isAuthor && !ans.isBest && (
-                    <button 
-                      onClick={() => handleMarkBest(ans.id)}
-                      className="text-[10px] font-black text-blue-600 hover:text-white hover:bg-blue-600 px-4 py-2 rounded-xl border border-blue-100 hover:border-blue-600 transition-all uppercase tracking-widest"
-                    >
-                      Mark as Best
-                    </button>
-                  )}
+                  <div className="flex gap-2">
+                    {isAuthor && !ans.isBest && (
+                      <button 
+                        onClick={() => handleMarkBest(ans.id)}
+                        className="text-[10px] font-black text-blue-600 hover:text-white hover:bg-blue-600 px-4 py-2 rounded-xl border border-blue-100 hover:border-blue-600 transition-all uppercase tracking-widest"
+                      >
+                        Mark as Best
+                      </button>
+                    )}
+                    {isPrivileged && (
+                      <>
+                        <button 
+                          onClick={() => handleVerify(ans.id)}
+                          className={`text-[10px] font-black px-4 py-2 rounded-xl border transition-all uppercase tracking-widest ${ans.isVerified ? 'bg-green-600 text-white border-green-600' : 'text-green-600 border-green-100 hover:bg-green-600 hover:text-white hover:border-green-600'}`}
+                        >
+                          {ans.isVerified ? 'Unverify' : 'Verify'}
+                        </button>
+                        <button 
+                          onClick={() => handleFlag(ans.id)}
+                          className={`text-[10px] font-black px-4 py-2 rounded-xl border transition-all uppercase tracking-widest ${ans.isFlagged ? 'bg-red-600 text-white border-red-600' : 'text-red-600 border-red-100 hover:bg-red-600 hover:text-white hover:border-red-600'}`}
+                        >
+                          {ans.isFlagged ? 'Unflag' : 'Flag'}
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          )) : (
+          );
+        }) : (
             <div className="p-10 bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-center text-slate-400 text-sm font-bold">No answers yet. Share your knowledge!</div>
           )}
         </div>

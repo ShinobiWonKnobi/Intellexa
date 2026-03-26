@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import QuestionDetailPage from './pages/QuestionDetailPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProfilePage from './pages/ProfilePage';
+import RedemptionPortal from './pages/RedemptionPortal';
 import AskModal from './components/AskModal';
 import ShareModal from './components/ShareModal';
 
@@ -42,13 +43,15 @@ const AppContent: React.FC = () => {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard onSelectQuestion={setSelectedQuestionId} searchQuery={searchQuery} onClearSearch={() => setSearchQuery('')} />;
+        return <Dashboard onSelectQuestion={setSelectedQuestionId} searchQuery={searchQuery} onClearSearch={() => setSearchQuery('')} onTabChange={handleTabChange} />;
       case 'leaderboard':
         return <LeaderboardPage />;
+      case 'redemption':
+        return <RedemptionPortal />;
       case 'profile':
         return <ProfilePage />;
       default:
-        return <Dashboard onSelectQuestion={setSelectedQuestionId} searchQuery={searchQuery} onClearSearch={() => setSearchQuery('')} />;
+        return <Dashboard onSelectQuestion={setSelectedQuestionId} searchQuery={searchQuery} onClearSearch={() => setSearchQuery('')} onTabChange={handleTabChange} />;
     }
   };
 

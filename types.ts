@@ -37,6 +37,8 @@ export interface Answer {
   anonymous: boolean;
   votes: number;
   isBest: boolean;
+  isVerified: boolean;
+  isFlagged: boolean;
   createdAt: string;
 }
 
@@ -58,6 +60,35 @@ export interface Vote {
   userId: string;
   targetId: string;
   value: 1 | -1;
+}
+
+export interface Exam {
+  id: string;
+  course: string;
+  date: string;
+  location: string;
+}
+
+export interface StudyTip {
+  id: string;
+  content: string;
+  author: string;
+}
+
+export interface RedemptionItem {
+  id: string;
+  title: string;
+  description: string;
+  cost: number;
+  icon: string;
+  category: 'perk' | 'merch' | 'academic';
+}
+
+export interface UserRedemption {
+  id: string;
+  userId: string;
+  itemId: string;
+  redeemedAt: string;
 }
 
 export enum KarmaReward {

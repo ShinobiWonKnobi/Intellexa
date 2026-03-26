@@ -1,12 +1,18 @@
 
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { QuestionCard, ResourceCard } from '../components/Cards';
-import { POPULAR_COURSES } from '../constants';
+import { QuestionCard, ResourceCard, ExamCountdownCard, StudyTipCard } from '../components/Cards';
+import { POPULAR_COURSES, UPCOMING_EXAMS, STUDY_TIPS } from '../constants';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Question, Resource } from '../types';
+import { Gift, ArrowRight } from 'lucide-react';
 
-const Dashboard: React.FC<{ onSelectQuestion: (id: string) => void; searchQuery: string; onClearSearch: () => void }> = ({ onSelectQuestion, searchQuery, onClearSearch }) => {
+const Dashboard: React.FC<{ 
+  onSelectQuestion: (id: string) => void; 
+  searchQuery: string; 
+  onClearSearch: () => void;
+  onTabChange: (tab: string) => void;
+}> = ({ onSelectQuestion, searchQuery, onClearSearch, onTabChange }) => {
   const { questions, resources, answers, user } = useApp();
   const [activeTab, setActiveTab] = useState<'questions' | 'resources' | 'my'>('questions');
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
@@ -100,6 +106,29 @@ const Dashboard: React.FC<{ onSelectQuestion: (id: string) => void; searchQuery:
           </div>
         </div>
 
+        {/* Karma Redemption Widget */}
+        <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-5 shadow-xl shadow-purple-100 text-white group cursor-pointer overflow-hidden relative" onClick={() => onTabChange('redemption')}>
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700"></div>
+          <div className="relative z-10 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                <Gift className="w-5 h-5" />
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-black font-mono leading-none">{user?.karma}</div>
+                <div className="text-[8px] font-bold text-white/60 uppercase tracking-widest mt-1">Points</div>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold">Redeem Rewards</h4>
+              <p className="text-[10px] text-white/70 font-medium leading-relaxed">Turn your karma into exclusive campus perks & merch.</p>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest pt-1 group-hover:gap-3 transition-all">
+              Browse Portal <ArrowRight className="w-3 h-3" />
+            </div>
+          </div>
+        </div>
+
         {/* Stats Section - Hidden on mobile to keep content primary */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hidden lg:block">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Live Stats</h3>
@@ -120,10 +149,31 @@ const Dashboard: React.FC<{ onSelectQuestion: (id: string) => void; searchQuery:
             </ResponsiveContainer>
           </div>
         </div>
+
+        {/* Exam Countdown Widget */}
+        <div className="hidden lg:block space-y-4">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">Upcoming Exams</h3>
+          {UPCOMING_EXAMS.slice(0, 2).map(exam => (
+            <ExamCountdownCard key={exam.id} exam={exam} />
+          ))}
+        </div>
+
+        {/* Daily Tip Widget */}
+        <div className="hidden lg:block">
+          <StudyTipCard tip={STUDY_TIPS[Math.floor(Date.now() / 86400000) % STUDY_TIPS.length]} />
+        </div>
       </aside>
 
       {/* Main Area */}
       <div className="lg:col-span-3 space-y-6 order-1 lg:order-2">
+        {/* Mobile Widgets */}
+        <div className="lg:hidden space-y-4">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <StudyTipCard tip={STUDY_TIPS[Math.floor(Date.now() / 86400000) % STUDY_TIPS.length]} />
+            {UPCOMING_EXAMS.length > 0 && <ExamCountdownCard exam={UPCOMING_EXAMS[0]} />}
+          </div>
+        </div>
+
         {searchQuery && (
           <div className="bg-blue-600 p-4 rounded-2xl flex items-center justify-between shadow-lg shadow-blue-100">
             <p className="text-sm text-white font-medium">Search: "<span className="font-bold">{searchQuery}</span>"</p>

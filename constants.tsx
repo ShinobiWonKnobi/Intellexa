@@ -1,5 +1,5 @@
 
-import { Question, Resource, User } from './types';
+import { Question, Resource, User, RedemptionItem } from './types';
 
 export const COLORS = {
   primary: '#4A6FA5',
@@ -11,8 +11,8 @@ export const COLORS = {
 export const MOCK_USERS: User[] = [
   {
     id: 'u1',
-    name: 'Alex Rivera',
-    email: 'arivera@university.edu',
+    name: 'Ayush Narania',
+    email: 'ayush@university.edu',
     avatar: 'https://picsum.photos/seed/u1/200',
     karma: 1250,
     contributions: 45,
@@ -21,13 +21,23 @@ export const MOCK_USERS: User[] = [
   },
   {
     id: 'u2',
-    name: 'Sarah Chen',
-    email: 'schen@university.edu',
+    name: 'Kush Patel',
+    email: 'kush@university.edu',
     avatar: 'https://picsum.photos/seed/u2/200',
     karma: 2100,
     contributions: 89,
     role: 'TA',
     joinedAt: '2023-01-05'
+  },
+  {
+    id: 'u3',
+    name: 'Kaustub Mundra',
+    email: 'kaustub@university.edu',
+    avatar: 'https://picsum.photos/seed/u3/200',
+    karma: 5000,
+    contributions: 150,
+    role: 'admin',
+    joinedAt: '2022-08-15'
   }
 ];
 
@@ -39,7 +49,7 @@ export const MOCK_QUESTIONS: Question[] = [
     course: 'CS401: Artificial Intelligence',
     tags: ['AI', 'NeuralNetworks', 'Math'],
     userId: 'u1',
-    userName: 'Alex Rivera',
+    userName: 'Ayush Narania',
     userAvatar: 'https://picsum.photos/seed/u1/200',
     anonymous: false,
     votes: 12,
@@ -55,7 +65,7 @@ export const MOCK_QUESTIONS: Question[] = [
     course: 'ECON101: Macroeconomics',
     tags: ['Midterm', 'StudyGuide'],
     userId: 'u3',
-    userName: 'Jordan Lee',
+    userName: 'Kaustub Mundra',
     userAvatar: 'https://picsum.photos/seed/u3/200',
     anonymous: true,
     votes: 8,
@@ -74,7 +84,7 @@ export const MOCK_RESOURCES: Resource[] = [
     course: 'CHEM202: Organic Chemistry',
     tags: ['Chemistry', 'CheatSheet'],
     userId: 'u2',
-    userName: 'Sarah Chen',
+    userName: 'Kush Patel',
     votes: 45,
     downloads: 128,
     link: 'https://example.com/chem-notes.pdf',
@@ -88,4 +98,68 @@ export const POPULAR_COURSES = [
   'CHEM202: Organic Chemistry',
   'MATH301: Linear Algebra',
   'ENG102: Composition II'
+];
+
+export const UPCOMING_EXAMS = [
+  { id: 'e1', course: 'CS401: Artificial Intelligence', date: '2026-04-15T09:00:00Z', location: 'Hall A' },
+  { id: 'e2', course: 'MATH301: Linear Algebra', date: '2026-04-18T14:00:00Z', location: 'Room 302' },
+  { id: 'e3', course: 'ECON101: Macroeconomics', date: '2026-04-22T11:00:00Z', location: 'Auditorium' }
+];
+
+export const STUDY_TIPS = [
+  { id: 't1', content: 'Use the Pomodoro technique: 25 mins study, 5 mins break.', author: 'Ayush Narania' },
+  { id: 't2', content: 'Explain concepts to someone else to solidify your understanding.', author: 'Kush Patel' },
+  { id: 't3', content: 'Review your notes within 24 hours of the lecture.', author: 'Kaustub Mundra' },
+  { id: 't4', content: 'Active recall is more effective than passive reading.', author: 'Intellexa AI' }
+];
+
+export const REDEMPTION_ITEMS: RedemptionItem[] = [
+  {
+    id: 'r1',
+    title: 'Priority Q&A',
+    description: 'Get your questions highlighted for faster responses from TAs.',
+    cost: 100,
+    icon: 'Zap',
+    category: 'perk'
+  },
+  {
+    id: 'r2',
+    title: 'Intellexa Hoodie',
+    description: 'Exclusive limited edition campus learning hoodie.',
+    cost: 2500,
+    icon: 'Shirt',
+    category: 'merch'
+  },
+  {
+    id: 'r3',
+    title: '1-on-1 TA Session',
+    description: '30-minute private session with a top-rated TA for any course.',
+    cost: 1000,
+    icon: 'Users',
+    category: 'academic'
+  },
+  {
+    id: 'r4',
+    title: 'Premium Study Guide',
+    description: 'Access to curated study guides for all midterms and finals.',
+    cost: 500,
+    icon: 'BookOpen',
+    category: 'academic'
+  },
+  {
+    id: 'r5',
+    title: 'Coffee Voucher',
+    description: 'Redeem for a free coffee at any campus cafe.',
+    cost: 300,
+    icon: 'Coffee',
+    category: 'perk'
+  },
+  {
+    id: 'r6',
+    title: 'Karma Badge',
+    description: 'A special profile badge to show off your contribution status.',
+    cost: 150,
+    icon: 'Award',
+    category: 'merch'
+  }
 ];
