@@ -9,21 +9,21 @@ export const QuestionCard: React.FC<{ question: Question; onClick: () => void }>
   const isOwn = user?.id === question.userId;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group active:scale-[0.99]" onClick={onClick}>
-      <div className="flex gap-4">
+    <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group active:scale-[0.99]" onClick={onClick}>
+      <div className="flex gap-3 sm:gap-4">
         {/* Voting - Compact on mobile */}
         <div className="flex flex-col items-center gap-0.5 sm:gap-1" onClick={(e) => e.stopPropagation()}>
           <button 
-            className={`p-1 transition-colors ${hasVoted ? 'text-blue-600 cursor-default' : isOwn ? 'text-slate-200 cursor-not-allowed' : 'text-slate-400 hover:text-blue-600'}`}
+            className={`p-1.5 sm:p-1 transition-colors ${hasVoted ? 'text-blue-600 cursor-default' : isOwn ? 'text-slate-200 cursor-not-allowed' : 'text-slate-400 hover:text-blue-600'}`}
             onClick={() => !hasVoted && !isOwn && vote(question.id, 'question', 1)}
             disabled={hasVoted || isOwn}
             aria-label="Upvote"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
           </button>
-          <span className={`font-bold text-sm sm:text-base ${hasVoted ? 'text-blue-600' : 'text-slate-700'}`}>{question.votes}</span>
+          <span className={`font-bold text-xs sm:text-base ${hasVoted ? 'text-blue-600' : 'text-slate-700'}`}>{question.votes}</span>
           <button 
-            className={`p-1 transition-colors ${isOwn ? 'text-slate-200 cursor-not-allowed' : 'text-slate-400 hover:text-red-600'}`}
+            className={`p-1.5 sm:p-1 transition-colors ${isOwn ? 'text-slate-200 cursor-not-allowed' : 'text-slate-400 hover:text-red-600'}`}
             onClick={() => !hasVoted && !isOwn && vote(question.id, 'question', -1)}
             disabled={hasVoted || isOwn}
             aria-label="Downvote"
@@ -34,25 +34,25 @@ export const QuestionCard: React.FC<{ question: Question; onClick: () => void }>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-lg uppercase tracking-wider">{question.course.split(':')[0]}</span>
-            {question.urgent && <span className="text-[10px] font-bold px-2 py-0.5 bg-red-50 text-red-600 rounded-lg uppercase tracking-wider animate-pulse">Urgent</span>}
-            {question.resolved && <span className="text-[10px] font-bold px-2 py-0.5 bg-green-50 text-green-600 rounded-lg uppercase tracking-wider">Resolved</span>}
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-lg uppercase tracking-wider">{question.course.split(':')[0]}</span>
+            {question.urgent && <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 bg-red-600 text-white rounded-lg uppercase tracking-wider animate-pulse shadow-sm shadow-red-100">Urgent</span>}
+            {question.resolved && <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 bg-green-50 text-green-600 rounded-lg uppercase tracking-wider">Resolved</span>}
           </div>
-          <h3 className="font-bold text-base sm:text-lg text-slate-900 mb-2 leading-snug group-hover:text-blue-600 transition-colors">{question.title}</h3>
-          <p className="text-slate-500 text-sm line-clamp-2 mb-4 leading-relaxed">{question.content}</p>
+          <h3 className="font-bold text-sm sm:text-lg text-slate-900 mb-1 sm:mb-2 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">{question.title}</h3>
+          <p className="text-slate-500 text-xs sm:text-sm line-clamp-2 mb-3 sm:mb-4 leading-relaxed">{question.content}</p>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src={question.userAvatar} className="w-6 h-6 rounded-lg shadow-sm" alt="" />
+              <img src={question.userAvatar} className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg shadow-sm" alt="" />
               <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                <span className="text-xs font-bold text-slate-700">{question.userName}</span>
+                <span className="text-[10px] sm:text-xs font-bold text-slate-700">{question.userName}</span>
                 <span className="text-[10px] text-slate-400 hidden sm:inline">•</span>
                 <span className="text-[10px] text-slate-400">{new Date(question.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold bg-slate-50 px-2 py-1 rounded-lg">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+            <div className="flex items-center gap-1 text-slate-400 text-[10px] sm:text-xs font-bold bg-slate-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg">
+              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
               {question.answerCount}
             </div>
           </div>

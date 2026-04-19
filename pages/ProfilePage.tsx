@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Gift, ArrowRight, Clock } from 'lucide-react';
+import { Gift, ArrowRight, Clock, Trophy } from 'lucide-react';
 import { REDEMPTION_ITEMS } from '../constants';
 
 const ProfilePage: React.FC = () => {
@@ -28,14 +28,14 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-        <div className="h-40 bg-gradient-to-r from-blue-600 to-indigo-600 relative">
+        <div className="h-32 sm:h-40 bg-gradient-to-r from-blue-600 to-indigo-600 relative">
           <div className="absolute inset-0 bg-black/10"></div>
-          <div className="absolute bottom-4 right-8 text-white/60 text-[10px] font-black uppercase tracking-[0.2em]">Intellexa Member</div>
+          <div className="absolute bottom-4 right-8 text-white/60 text-[10px] font-black uppercase tracking-[0.2em] hidden sm:block">Intellexa Member</div>
         </div>
-        <div className="px-8 pb-8">
-          <div className="relative -mt-16 mb-6 flex justify-between items-end">
+        <div className="px-4 sm:px-8 pb-8">
+          <div className="relative -mt-12 sm:-mt-16 mb-6 flex justify-between items-end">
             <div className="relative group">
-              <img src={isEditing ? newAvatar : user?.avatar} className="w-32 h-32 rounded-3xl border-4 border-white shadow-lg bg-white object-cover" alt="" />
+              <img src={isEditing ? newAvatar : user?.avatar} className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl sm:rounded-3xl border-4 border-white shadow-lg bg-white object-cover" alt="" />
               {isEditing && (
                 <div className="absolute inset-0 bg-black/40 rounded-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -115,25 +115,40 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center group hover:border-blue-200 transition-colors">
-              <span className="text-3xl font-black text-blue-600 mb-1 group-hover:scale-110 transition-transform">{user?.karma}</span>
-              <span className="text-xs font-bold text-slate-500 uppercase">Karma Points</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-100 flex flex-row sm:flex-col items-center justify-between sm:justify-center text-center group hover:border-blue-200 transition-colors">
+              <div className="flex flex-col items-start sm:items-center">
+                <span className="text-2xl sm:text-3xl font-black text-blue-600 mb-1 group-hover:scale-110 transition-transform">{user?.karma}</span>
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">Karma Points</span>
+              </div>
+              <div className="sm:hidden w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                <Gift className="w-5 h-5" />
+              </div>
             </div>
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center group hover:border-indigo-200 transition-colors">
-              <span className="text-3xl font-black text-indigo-600 mb-1 group-hover:scale-110 transition-transform">{user?.contributions}</span>
-              <span className="text-xs font-bold text-slate-500 uppercase">Total Contributions</span>
+            <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-100 flex flex-row sm:flex-col items-center justify-between sm:justify-center text-center group hover:border-indigo-200 transition-colors">
+              <div className="flex flex-col items-start sm:items-center">
+                <span className="text-2xl sm:text-3xl font-black text-indigo-600 mb-1 group-hover:scale-110 transition-transform">{user?.contributions}</span>
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">Contributions</span>
+              </div>
+              <div className="sm:hidden w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
+                <Clock className="w-5 h-5" />
+              </div>
             </div>
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center group hover:border-green-200 transition-colors">
-              <span className="text-3xl font-black text-green-600 mb-1 group-hover:scale-110 transition-transform">Top 5%</span>
-              <span className="text-xs font-bold text-slate-500 uppercase">Ranking</span>
+            <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-100 flex flex-row sm:flex-col items-center justify-between sm:justify-center text-center group hover:border-green-200 transition-colors">
+              <div className="flex flex-col items-start sm:items-center">
+                <span className="text-2xl sm:text-3xl font-black text-green-600 mb-1 group-hover:scale-110 transition-transform">Top 5%</span>
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">Ranking</span>
+              </div>
+              <div className="sm:hidden w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
+                <Trophy className="w-5 h-5" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Redemption History */}
-      <div className="mt-8 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+      <div className="mt-6 sm:mt-8 bg-white rounded-3xl border border-slate-200 p-5 sm:p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">

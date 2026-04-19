@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { GraduationCap, Home, TrendingUp, Search, LogOut, User as UserIcon, Gift } from 'lucide-react';
+import { GraduationCap, Home, TrendingUp, Search, LogOut, User as UserIcon, Gift, Trophy } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -47,29 +47,30 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onSea
           </form>
 
           <nav className="flex items-center gap-1 sm:gap-4">
-            <button 
-              onClick={() => onTabChange('dashboard')} 
-              className={`p-2 sm:p-2.5 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-              title="Home"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-            </button>
-            <button 
-              onClick={() => onTabChange('leaderboard')} 
-              className={`p-2 sm:p-2.5 rounded-xl transition-all ${activeTab === 'leaderboard' ? 'bg-amber-50 text-amber-600' : 'text-slate-400 hover:text-slate-600'}`}
-              title="Leaderboard"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-            </button>
-            <button 
-              onClick={() => onTabChange('redemption')} 
-              className={`p-2 sm:p-2.5 rounded-xl transition-all ${activeTab === 'redemption' ? 'bg-purple-50 text-purple-600' : 'text-slate-400 hover:text-slate-600'}`}
-              title="Redemption Portal"
-            >
-              <Gift className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-
-            <div className="h-6 w-px bg-slate-200 mx-1 sm:mx-2"></div>
+            <div className="hidden sm:flex items-center gap-1 sm:gap-4">
+              <button 
+                onClick={() => onTabChange('dashboard')} 
+                className={`p-2 sm:p-2.5 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-blue-50 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                title="Home"
+              >
+                <Home className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+              <button 
+                onClick={() => onTabChange('leaderboard')} 
+                className={`p-2 sm:p-2.5 rounded-xl transition-all ${activeTab === 'leaderboard' ? 'bg-amber-50 text-amber-600' : 'text-slate-400 hover:text-slate-600'}`}
+                title="Leaderboard"
+              >
+                <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+              <button 
+                onClick={() => onTabChange('redemption')} 
+                className={`p-2 sm:p-2.5 rounded-xl transition-all ${activeTab === 'redemption' ? 'bg-purple-50 text-purple-600' : 'text-slate-400 hover:text-slate-600'}`}
+                title="Redemption Portal"
+              >
+                <Gift className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+              <div className="h-6 w-px bg-slate-200 mx-1 sm:mx-2"></div>
+            </div>
 
             <div className="relative group">
               <div className="flex items-center gap-2 cursor-pointer p-1 rounded-xl hover:bg-slate-50 transition-colors">
@@ -104,11 +105,43 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, onSea
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 sm:py-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 sm:py-8 mb-20 sm:mb-0">
         {children}
       </main>
 
-      <footer className="bg-white border-t border-slate-200 py-12">
+      {/* Mobile Bottom Navigation */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex items-center justify-between z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+        <button 
+          onClick={() => onTabChange('dashboard')}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'dashboard' ? 'text-blue-600' : 'text-slate-400'}`}
+        >
+          <Home className="w-6 h-6" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Home</span>
+        </button>
+        <button 
+          onClick={() => onTabChange('leaderboard')}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'leaderboard' ? 'text-amber-600' : 'text-slate-400'}`}
+        >
+          <Trophy className="w-6 h-6" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Ranks</span>
+        </button>
+        <button 
+          onClick={() => onTabChange('redemption')}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'redemption' ? 'text-purple-600' : 'text-slate-400'}`}
+        >
+          <Gift className="w-6 h-6" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Store</span>
+        </button>
+        <button 
+          onClick={() => onTabChange('profile')}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'profile' ? 'text-slate-900' : 'text-slate-400'}`}
+        >
+          <UserIcon className="w-6 h-6" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Profile</span>
+        </button>
+      </div>
+
+      <footer className="bg-white border-t border-slate-200 py-12 hidden sm:block">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white">

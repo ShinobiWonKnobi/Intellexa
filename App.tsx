@@ -60,7 +60,7 @@ const AppContent: React.FC = () => {
       {renderContent()}
 
       {/* Floating Action Buttons - Improved Mobile Layout */}
-      <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40 items-end">
+      <div className="fixed bottom-24 sm:bottom-6 right-6 flex flex-col gap-3 z-40 items-end">
         {/* Share Resource FAB */}
         <div className="flex items-center gap-3 group">
           <span className="bg-indigo-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden sm:block uppercase tracking-wider">

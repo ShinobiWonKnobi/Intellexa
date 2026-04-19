@@ -51,21 +51,21 @@ const RedemptionPortal: React.FC = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Hero Section */}
-      <div className="bg-slate-900 rounded-[2rem] p-8 sm:p-12 text-white relative overflow-hidden">
+      <div className="bg-slate-900 rounded-[2rem] p-6 sm:p-12 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="space-y-4 text-center md:text-left">
-            <h1 className="text-4xl sm:text-5xl font-extrabold font-poppins tracking-tight">
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6 sm:gap-8">
+          <div className="space-y-3 sm:space-y-4 text-center md:text-left">
+            <h1 className="text-3xl sm:text-5xl font-extrabold font-poppins tracking-tight">
               Karma <span className="text-blue-400">Redemption</span>
             </h1>
-            <p className="text-slate-400 max-w-md text-lg">
+            <p className="text-slate-400 max-w-md text-sm sm:text-lg">
               Your contributions matter. Turn your hard-earned karma into exclusive perks, merch, and academic advantages.
             </p>
           </div>
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-center min-w-[200px]">
-            <span className="text-sm font-bold text-blue-400 uppercase tracking-widest block mb-1">Available Balance</span>
-            <div className="text-4xl font-black font-mono">{user?.karma.toLocaleString()}</div>
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">Karma Points</span>
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-center min-w-[160px] sm:min-w-[200px] w-full sm:w-auto">
+            <span className="text-[10px] sm:text-sm font-bold text-blue-400 uppercase tracking-widest block mb-1">Available Balance</span>
+            <div className="text-3xl sm:text-4xl font-black font-mono">{user?.karma.toLocaleString()}</div>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Karma Points</span>
           </div>
         </div>
       </div>
@@ -99,14 +99,14 @@ const RedemptionPortal: React.FC = () => {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main Catalog */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-xl font-bold text-slate-900">Reward Catalog</h2>
-            <div className="flex gap-2 bg-white p-1 rounded-xl border border-slate-200">
+            <div className="flex gap-1 sm:gap-2 bg-white p-1 rounded-xl border border-slate-200 overflow-x-auto no-scrollbar">
               {(['all', 'perk', 'merch', 'academic'] as const).map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setFilter(cat)}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all uppercase tracking-wider ${
+                  className={`px-3 sm:px-4 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all uppercase tracking-wider whitespace-nowrap ${
                     filter === cat ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >

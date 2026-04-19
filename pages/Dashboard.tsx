@@ -87,10 +87,10 @@ const Dashboard: React.FC<{
       <aside className="space-y-6 order-2 lg:order-1">
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Filter by Course</h3>
-          <div className="flex flex-col gap-1 max-h-[300px] lg:max-h-none overflow-y-auto pr-1 custom-scrollbar">
+          <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto no-scrollbar lg:pr-1 custom-scrollbar pb-2 lg:pb-0">
             <button 
               onClick={() => setSelectedCourse(null)}
-              className={`text-left text-sm py-2 px-3 rounded-xl transition-all ${!selectedCourse ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-50 text-slate-600'}`}
+              className={`text-left text-sm py-2 px-4 lg:px-3 rounded-xl transition-all whitespace-nowrap ${!selectedCourse ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-50 text-slate-600 bg-slate-50 lg:bg-transparent'}`}
             >
               All Courses
             </button>
@@ -98,7 +98,7 @@ const Dashboard: React.FC<{
               <button 
                 key={course}
                 onClick={() => setSelectedCourse(course)}
-                className={`text-left text-sm py-2 px-3 rounded-xl transition-all ${selectedCourse === course ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-50 text-slate-600'}`}
+                className={`text-left text-sm py-2 px-4 lg:px-3 rounded-xl transition-all whitespace-nowrap ${selectedCourse === course ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-slate-50 text-slate-600 bg-slate-50 lg:bg-transparent'}`}
               >
                 {course}
               </button>
